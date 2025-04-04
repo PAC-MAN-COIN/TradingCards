@@ -3,724 +3,947 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meme Card Packs</title>
+    <title>MemeCoin Card Packs - Enhanced Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        @keyframes cardReveal {
-            0% { transform: rotateY(0deg); }
-            50% { transform: rotateY(90deg); }
-            100% { transform: rotateY(0deg); }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            overflow-x: hidden; /* Prevent horizontal scroll from animations */
         }
-        
-        @keyframes packOpen {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.2); }
-            100% { transform: scale(1); }
-        }
-        
+
+        /* --- Basic Animations & Effects --- */
         @keyframes shine {
-            0% { background-position: -100% 0; }
+            0% { background-position: -200% 0; }
             100% { background-position: 200% 0; }
         }
-        
-        .card-reveal {
-            animation: cardReveal 0.8s ease-in-out;
+        .shiny::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -100%;
+            width: 300%;
+            height: 200%;
+            background: linear-gradient(
+                60deg,
+                rgba(255,255,255,0) 20%,
+                rgba(255,255,255,0.6) 50%,
+                rgba(255,255,255,0) 80%
+            );
+            transform: rotate(25deg);
+            animation: shine 3.5s infinite linear;
+            z-index: 1;
+            pointer-events: none;
         }
-        
-        .pack-open {
-            animation: packOpen 0.5s ease-in-out;
+
+        @keyframes shake { /* Simple shake for errors */
+           10%, 90% { transform: translate3d(-1px, 0, 0); }
+           20%, 80% { transform: translate3d(2px, 0, 0); }
+           30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+           40%, 60% { transform: translate3d(4px, 0, 0); }
         }
-        
-        .shiny {
+        .animate-shake {
+           animation: shake 0.82s cubic-bezier(.36,.07,.19,.97) both;
+        }
+
+
+        /* --- Card Base Styles & Inventory Hover --- */
+        .card {
+            border-radius: 12px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            background-color: #2a2a3e;
+            border: 1px solid rgba(255, 255, 255, 0.1);
             position: relative;
             overflow: hidden;
         }
-        
-        .shiny:after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom:  ͏0;
-            background: linear-gradient(
-                45deg,
-                rgba(255,255,255,0) 0%,
-                rgba(255,255,255,0.8) 30%,
-                rgba(255,255,255,0) 60%
-            );
-            transform: skewX(-20deg);
-            animation: shine 3s infinite;
+        .card-image-container {
+            background-color: rgba(0,0,0,0.2);
+            border-radius: 6px;
+            padding: 10px;
+            margin-bottom: 10px;
+            min-height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-        
-        .full-art {
-            background-size: cover;
-            background-position: center;
+        .card img {
+            object-fit: contain;
         }
-        
-        .card-common {
-            border: 2px solid #a8a878;
+        .inventory-card {
+             position: relative; /* Needed for count badge */
         }
-        
-        .card-uncommon {
-            border: 2px solid #6890f0;
+        .inventory-card:hover {
+            transform: translateY(-6px) scale(1.04);
         }
-        
-        .card-rare {
-            border: 2px solid #f8d030;
+        .inventory-card .count-badge {
+             position: absolute;
+             top: 8px;
+             right: 8px;
+             background-color: rgba(0, 0, 0, 0.7);
+             color: #fff;
+             font-size: 0.75rem;
+             font-weight: 600;
+             padding: 2px 6px;
+             border-radius: 99px;
+             border: 1px solid rgba(255, 255, 255, 0.3);
+             z-index: 2;
         }
-        
-        .card-epic {
-            border: 2px solid #b8a038;
+        /* Rarity Glow Effects (Inventory Hover) */
+        .rarity-glow-common:hover { box-shadow: 0 0 15px 3px rgba(168, 168, 120, 0.5); }
+        .rarity-glow-uncommon:hover { box-shadow: 0 0 15px 3px rgba(104, 144, 240, 0.6); }
+        .rarity-glow-rare:hover { box-shadow: 0 0 15px 3px rgba(248, 208, 48, 0.7); }
+        .rarity-glow-epic:hover { box-shadow: 0 0 20px 4px rgba(184, 160, 56, 0.8); }
+        .rarity-glow-legendary:hover { box-shadow: 0 0 25px 5px rgba(240, 128, 48, 0.9); }
+        .rarity-glow-mythic:hover { box-shadow: 0 0 30px 6px rgba(192, 48, 40, 1.0); }
+
+        /* --- Enhanced Pack Visuals --- */
+        .pack-visual {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative; /* Needed for pseudo-elements */
+            overflow: hidden; /* Hide overflowing pseudo-elements */
         }
-        
-        .card-legendary {
-            border: 2px solid #f08030;
+        .pack-visual:hover {
+            transform: scale(1.07) rotate(1deg); /* More dynamic hover */
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
         }
-        
-        .card-mythic {
-            border: 2px solid #c03028;
+        /* Subtle pattern attempt */
+        .pack-visual::before {
+             content: '';
+             position: absolute;
+             top: 0; left: 0; right: 0; bottom: 0;
+             background: radial-gradient(circle at top left, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 30%),
+                         radial-gradient(circle at bottom right, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 30%);
+             opacity: 0.6;
+             z-index: 0;
+         }
+        .pack-visual > * { /* Ensure content is above the pseudo-element */
+            position: relative;
+            z-index: 1;
         }
-        
+
+        /* --- Pack Opening Animations --- */
+        @keyframes packWobble {
+            0% { transform: scale(1.0) rotate(0deg); }
+            15% { transform: scale(1.05) rotate(-4deg); }
+            30% { transform: scale(1.08) rotate(4deg); }
+            45% { transform: scale(1.1) rotate(-3deg); }
+            60% { transform: scale(1.1) rotate(3deg); }
+            75% { transform: scale(1.1) rotate(0deg); }
+            100% { transform: scale(1.1) rotate(0deg); } /* Hold final scale */
+        }
+        @keyframes packFlyAway {
+            0% { transform: scale(1.1) translateY(0) rotate(0deg); opacity: 1; }
+            100% { transform: scale(0.2) translateY(-300px) rotate(45deg); opacity: 0; }
+        }
+
+        .pack-opening-wobble {
+            animation: packWobble 0.6s ease-in-out forwards;
+        }
+        .pack-opening-flyaway {
+             animation: packFlyAway 0.4s ease-in forwards;
+             animation-delay: 0.1s; /* Slight delay after wobble */
+         }
+
+        /* --- Card Reveal Area --- */
+         #cardRevealArea {
+             position: fixed; /* Overlay effect */
+             top: 0; left: 0; right: 0; bottom: 0;
+             background-color: rgba(0, 0, 0, 0.85); /* Dark overlay */
+             backdrop-filter: blur(5px);
+             display: flex;
+             flex-direction: column; /* Stack container and button */
+             align-items: center;
+             justify-content: center;
+             z-index: 50; /* Ensure it's on top */
+             opacity: 0;
+             transition: opacity 0.3s ease-in-out;
+             pointer-events: none; /* Initially not interactive */
+             padding-top: 60px; /* Space for close button */
+             box-sizing: border-box;
+         }
+         #cardRevealArea.visible {
+             opacity: 1;
+             pointer-events: auto; /* Allow interaction when visible */
+         }
+         #revealedCardsContainer {
+             display: flex;
+             gap: 20px;
+             perspective: 1500px; /* For 3D flip */
+             flex-wrap: wrap;
+             justify-content: center;
+             align-items: center;
+             padding: 20px;
+             max-width: 90%; /* Prevent extreme width on large screens */
+         }
+         #closeRevealAreaBtn {
+             position: absolute;
+             top: 15px;
+             right: 15px;
+             color: #ccc;
+             font-size: 2rem; /* Smaller close icon */
+             font-weight: bold;
+             background-color: rgba(50, 50, 50, 0.7);
+             border: 1px solid rgba(255,255,255,0.2);
+             width: 40px;
+             height: 40px;
+             border-radius: 50%;
+             display: flex;
+             align-items: center;
+             justify-content: center;
+             cursor: pointer;
+             transition: background-color 0.2s, color 0.2s, transform 0.2s;
+             z-index: 51; /* Above reveal container */
+         }
+         #closeRevealAreaBtn:hover {
+              background-color: rgba(80, 80, 80, 0.9);
+              color: #fff;
+              transform: rotate(90deg);
+          }
+
+
+        /* --- Card Flip Animation --- */
+        .card-flip-container {
+             width: 160px; /* Card width */
+             height: 220px; /* Card height */
+             position: relative;
+             transform-style: preserve-3d;
+             transition: transform 0.8s cubic-bezier(0.25, 0.8, 0.25, 1); /* Smooth flip */
+             margin-bottom: 10px; /* Spacing */
+         }
+         .card-flip-container.is-flipped {
+             transform: rotateY(180deg);
+         }
+         .card-face {
+             position: absolute;
+             width: 100%;
+             height: 100%;
+             backface-visibility: hidden; /* Hide the back side during flip */
+             border-radius: 12px;
+             overflow: hidden;
+             box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+         }
+         .card-back {
+             background: linear-gradient(135deg, #4a00e0, #8e2de2); /* Example card back gradient */
+             display: flex;
+             align-items: center;
+             justify-content: center;
+             /* Add a logo or pattern here */
+             font-size: 3rem;
+             color: rgba(255, 255, 255, 0.5);
+             transform: rotateY(0deg); /* Front facing initially */
+         }
+          .card-front {
+             transform: rotateY(180deg); /* Back facing initially */
+             background-color: #2a2a3e; /* Match card background */
+          }
+
+        /* --- Rarity Reveal Effects --- */
+         @keyframes rarityGlowPulse {
+             0%, 100% { box-shadow: 0 0 15px 5px var(--glow-color); transform: scale(1); }
+             50% { box-shadow: 0 0 30px 10px var(--glow-color); transform: scale(1.05); }
+         }
+         .rarity-glow-reveal-rare { --glow-color: rgba(248, 208, 48, 0.8); animation: rarityGlowPulse 1s ease-in-out; }
+         .rarity-glow-reveal-epic { --glow-color: rgba(184, 160, 56, 0.9); animation: rarityGlowPulse 1s ease-in-out; }
+         .rarity-glow-reveal-legendary { --glow-color: rgba(240, 128, 48, 1.0); animation: rarityGlowPulse 1.2s ease-in-out; }
+         .rarity-glow-reveal-mythic { --glow-color: rgba(192, 48, 40, 1.0); animation: rarityGlowPulse 1.4s ease-in-out; }
+
+        /* --- Coin Animation --- */
+        @keyframes coinPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); color: #facc15; } /* Yellow-400 */
+        }
+        .coin-pulse-animation {
+            animation: coinPulse 0.4s ease-in-out;
+        }
+
+        /* --- General UI Styles --- */
         .progress-bar {
             transition: width 0.5s ease-in-out;
+            background: linear-gradient(90deg, #16a085, #2ecc71);
         }
-        
-        .card-stats {
-            transition: all 0.3s ease;
-            transform: scale(0);
-            opacity: 0;
+        .bg-gray-900 { background-color: transparent; } /* Let body gradient show */
+        .filter-btn.active {
+            background-color: #4a69bd !important;
+            color: white;
+            box-shadow: 0 0 10px rgba(74, 105, 189, 0.7);
         }
-        
-        .card:hover .card-stats {
-            transform: scale(1);
-            opacity: 1;
-        }
-        
-        .inventory-card {
+        .filter-btn {
             transition: all 0.2s ease;
+            background-color: #3a3a5e;
+            color: #ccc;
         }
-        
-        .inventory-card:hover {
-            transform: translateY(-5px) scale(1.05);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        .filter-btn:hover {
+             background-color: #4a4a7e;
+             color: #fff;
         }
     </style>
 </head>
-<body class="bg-gray-900 text-white min-h-screen">
-    <div class="container mx-auto px-4 py-8">
-        <header class="flex justify-between items-center mb-8">
-            <h1 class="text-4xl font-bold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">Meme Card Packs</h1>
-            <div class="flex items-center space-x-4">
-                <button id="inventoryBtn" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg flex items-center">
-                    <i class="fas fa-book mr-2"></i> Inventory
+<body class="text-gray-200 min-h-screen">
+    <div class="container mx-auto px-4 py-8 max-w-6xl"> <header class="flex flex-wrap justify-between items-center mb-10 pb-4 border-b border-gray-700">
+            <h1 class="text-4xl md:text-5xl font-bold bg-gradient-to-r from-teal-400 via-blue-500 to-purple-600 bg-clip-text text-transparent mb-4 md:mb-0">
+                MemeCoin Collector
+            </h1>
+            <div class="flex items-center space-x-4 w-full md:w-auto justify-center md:justify-end">
+                 <div class="bg-gray-800 bg-opacity-70 px-4 py-2 rounded-lg text-center shadow-md">
+                     <i class="fas fa-tachometer-alt text-cyan-400 mr-1"></i> Rate:
+                     <span id="coinsPerMinute" class="font-semibold">0</span> Coins/Min
+                 </div>
+                <button id="inventoryBtn" class="bg-blue-600 hover:bg-blue-700 active:bg-blue-800 px-5 py-2 rounded-lg flex items-center transition duration-200 shadow hover:shadow-lg active:scale-95">
+                    <i class="fas fa-box-archive mr-2"></i> Collection
                 </button>
-                <div class="bg-gray-800 px-4 py-2 rounded-lg">
-                    <i class="fas fa-coins text-yellow-400 mr-2"></i>
-                    <span id="coinCount">100</span>
+                <div class="bg-gray-800 bg-opacity-70 px-4 py-2 rounded-lg flex items-center shadow-md">
+                    <i class="fas fa-coins text-yellow-400 mr-2 fa-fw"></i>
+                    <span id="coinCount" class="font-semibold text-lg">100</span>
                 </div>
             </div>
         </header>
-        
+
         <main>
             <div id="mainScreen" class="text-center">
-                <div class="mb-8">
-                    <h2 class="text-2xl mb-4">Next Free Pack In:</h2>
-                    <div class="w-full bg-gray-700 rounded-full h-4 mb-2">
-                        <div id="packTimer" class="progress-bar bg-green-500 h-4 rounded-full" style="width: 0%"></div>
+                <div class="mb-12 p-6 bg-gray-800 bg-opacity-50 rounded-xl shadow-xl max-w-md mx-auto">
+                     <h2 class="text-2xl mb-3 font-semibold text-gray-100">Next Free Pack</h2>
+                     <div class="w-full bg-gray-700 rounded-full h-5 mb-2 overflow-hidden border border-gray-600">
+                         <div id="packTimer" class="progress-bar h-full rounded-full" style="width: 0%"></div>
+                     </div>
+                     <p id="timerText" class="text-gray-300 text-lg font-mono">00:00:00</p>
+                     <button id="freePackBtn" class="mt-4 bg-gradient-to-r from-green-500 to-teal-500 hover:from-green-600 hover:to-teal-600 active:from-green-700 active:to-teal-700 px-6 py-3 rounded-lg text-xl font-bold flex items-center mx-auto transition duration-300 transform hover:scale-105 active:scale-100 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg disabled:shadow-none">
+                         <i class="fas fa-gift mr-2"></i> Claim Free Pack
+                     </button>
+                 </div>
+
+                <h2 class="text-3xl font-semibold mb-8 text-center text-gray-100">Purchase Packs</h2>
+                <div class="flex flex-wrap justify-center gap-8 mb-8">
+                    <div class="pack-card cursor-pointer transform hover:scale-105 transition-transform duration-300" data-pack-type="basic" data-cost="50">
+                        <div class="pack-visual bg-gradient-to-br from-red-500 to-red-700 rounded-xl p-5 w-56 h-72 flex flex-col items-center justify-between border-2 border-red-800 shadow-lg hover:shadow-red-500/30 transition-shadow">
+                            <div class="text-center">
+                                <i class="fas fa-box text-6xl mb-4 text-red-100"></i>
+                                <h3 class="text-xl font-bold text-white">Basic Pack</h3>
+                                <p class="text-sm text-red-200 mt-1">Common Focus</p>
+                                <p class="text-xs text-red-200">(5 Cards)</p>
+                            </div>
+                            <div class="mt-4 bg-yellow-500 text-black px-5 py-1.5 rounded-full font-bold text-lg shadow-inner">50 <i class="fas fa-coins text-xs"></i></div>
+                        </div>
                     </div>
-                    <p id="timerText" class="text-gray-300">00:00:00</p>
+                     <div class="pack-card cursor-pointer transform hover:scale-105 transition-transform duration-300" data-pack-type="premium" data-cost="150">
+                         <div class="pack-visual bg-gradient-to-br from-blue-500 to-blue-700 rounded-xl p-5 w-56 h-72 flex flex-col items-center justify-between border-2 border-blue-800 shadow-lg hover:shadow-blue-500/30 transition-shadow">
+                             <div class="text-center">
+                                 <i class="fas fa-star text-6xl mb-4 text-blue-100"></i>
+                                 <h3 class="text-xl font-bold text-white">Premium Pack</h3>
+                                 <p class="text-sm text-blue-200 mt-1">Uncommon/Rare Focus</p>
+                                 <p class="text-xs text-blue-200">(5 Cards)</p>
+                             </div>
+                             <div class="mt-4 bg-yellow-500 text-black px-5 py-1.5 rounded-full font-bold text-lg shadow-inner">150 <i class="fas fa-coins text-xs"></i></div>
+                         </div>
+                     </div>
+                    <div class="pack-card cursor-pointer transform hover:scale-105 transition-transform duration-300" data-pack-type="legendary" data-cost="300">
+                        <div class="pack-visual bg-gradient-to-br from-purple-500 to-purple-700 rounded-xl p-5 w-56 h-72 flex flex-col items-center justify-between border-2 border-purple-800 shadow-lg hover:shadow-purple-500/30 transition-shadow">
+                           <div class="text-center">
+                                <i class="fas fa-crown text-6xl mb-4 text-purple-100"></i>
+                                <h3 class="text-xl font-bold text-white">Legendary Pack</h3>
+                                <p class="text-sm text-purple-200 mt-1">Epic/Legendary Focus</p>
+                                <p class="text-xs text-purple-200">(5 Cards)</p>
+                           </div>
+                            <div class="mt-4 bg-yellow-500 text-black px-5 py-1.5 rounded-full font-bold text-lg shadow-inner">300 <i class="fas fa-coins text-xs"></i></div>
+                        </div>
+                    </div>
                 </div>
-                
-                <div class="flex justify-center space-x-8 mb-8">
-                    <div class="pack-card cursor-pointer transform hover:scale-105 transition-transform" data-pack-type="basic">
-                        <div class="bg-red-600 rounded-xl p-4 w-48 h-64 flex flex-col items-center justify-center border-4 border-red-700 shadow-lg">
-                            <i class="fas fa-gift text-6xl mb-4"></i>
-                            <h3 class="text-xl font-bold">Basic Pack</h3>
-                            <p class="text-sm">5 Common Cards</p>
-                            <div class="mt-4 bg-yellow-500 text-black px-4 py-1 rounded-full font-bold">50 Coins</div>
-                        </div>
-                    </div>
-                    
-                    <div class="pack-card cursor-pointer transform hover:scale-105 transition-transform" data-pack-type="premium">
-                        <div class="bg-blue-600 rounded-xl p-4 w-48 h-64 flex flex-col items-center justify-center border-4 border-blue-700 shadow-lg">
-                            <i class="fas fa-star text-6xl mb-4"></i>
-                            <h3 class="text-xl font-bold">Premium Pack</h3>
-                            <p class="text-sm">3 Rare + 2 Common</p>
-                            <div class="mt-4 bg-yellow-500 text-black px-4 py-1 rounded-full font-bold">150 Coins</div>
-                        </div>
-                    </div>
-                    
-                    <div class="pack-card cursor-pointer transform hover:scale-105 transition-transform" data-pack-type="legendary">
-                        <div class="bg-purple-600 rounded-xl p-4 w-48 h-64 flex flex-col items-center justify-center border-4 border-purple-700 shadow-lg">
-                            <i class="fas fa-crown text-6xl mb-4"></i>
-                            <h3 class="text-xl font-bold">Legendary Pack</h3>
-                            <p class="text-sm">1 Legendary + 2 Rare</p>
-                            <div class="mt-4 bg-yellow-500 text-black px-4 py-1 rounded-full font-bold">300 Coins</div>
-                        </div>
-                    </div>
-                </div>
-                
-                <button id="freePackBtn" class="bg-green-600 hover:bg-green-700 px-6 py-3 rounded-lg text-xl font-bold flex items-center mx-auto">
-                    <i class="fas fa-gift mr-2"></i> Open Free Pack
-                </button>
             </div>
-            
+
             <div id="packOpeningScreen" class="hidden text-center">
-                <div class="flex justify-center mb-8">
-                    <div id="packImage" class="bg-red-600 rounded-xl p-8 w-64 h-96 flex flex-col items-center justify-center border-4 border-red-700 shadow-lg cursor-pointer pack-open">
-                        <i class="fas fa-gift text-8xl mb-4"></i>
-                        <h3 class="text-2xl font-bold">Click to Open!</h3>
+                 <h2 id="packOpeningTitle" class="text-3xl font-semibold mb-6">Opening Pack...</h2>
+                <div id="packVisualInjectArea" class="flex justify-center mb-8 perspective" style="perspective: 1000px;">
                     </div>
                 </div>
-                
-                <div id="cardResults" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 hidden">
-                    <!-- Cards will be inserted here -->
-                </div>
-                
-                <button id="backToMainBtn" class="mt-8 bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-lg text-xl font-bold hidden">
-                    Back to Main
-                </button>
-            </div>
-            
+
             <div id="inventoryScreen" class="hidden">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-3xl font-bold">Your Meme Collection</h2>
-                    <button id="backFromInventoryBtn" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg">
-                        Back
+                <div class="flex flex-wrap justify-between items-center mb-6 gap-4">
+                    <h2 class="text-3xl font-bold text-gray-100">My MemeCoin Collection</h2>
+                    <button id="backFromInventoryBtn" class="bg-gray-600 hover:bg-gray-700 active:bg-gray-800 px-4 py-2 rounded-lg transition duration-200 active:scale-95">
+                         <i class="fas fa-arrow-left mr-2"></i> Back
                     </button>
                 </div>
-                
-                <div class="mb-6">
-                    <div class="flex space-x-4 overflow-x-auto pb-4">
-                        <button class="filter-btn active bg-blue-600 px-4 py-1 rounded-full" data-rarity="all">All</button>
-                        <button class="filter-btn bg-gray-700 px-4 py-1 rounded-full" data-rarity="common">Common</button>
-                        <button class="filter-btn bg-gray-700 px-4 py-1 rounded-full" data-rarity="uncommon">Uncommon</button>
-                        <button class="filter-btn bg-gray-700 px-4 py-1 rounded-full" data-rarity="rare">Rare</button>
-                        <button class="filter-btn bg-gray-700 px-4 py-1 rounded-full" data-rarity="epic">Epic</button>
-                        <button class="filter-btn bg-gray-700 px-4 py-1 rounded-full" data-rarity="legendary">Legendary</button>
-                        <button class="filter-btn bg-gray-700 px-4 py-1 rounded-full" data-rarity="mythic">Mythic</button>
-                    </div>
-                </div>
-                
-                <div id="inventoryCards" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                    <!-- Inventory cards will be inserted here -->
+
+                <div class="mb-6 sticky top-0 bg-gray-900 bg-opacity-80 backdrop-blur-sm py-3 z-10 rounded-lg shadow">
+                     <div class="flex space-x-2 overflow-x-auto pb-2 px-2 justify-center">
+                         <button class="filter-btn active px-4 py-1.5 rounded-full text-sm whitespace-nowrap" data-rarity="all">All</button>
+                         <button class="filter-btn px-4 py-1.5 rounded-full text-sm whitespace-nowrap" data-rarity="common">Common</button>
+                         <button class="filter-btn px-4 py-1.5 rounded-full text-sm whitespace-nowrap" data-rarity="uncommon">Uncommon</button>
+                         <button class="filter-btn px-4 py-1.5 rounded-full text-sm whitespace-nowrap" data-rarity="rare">Rare</button>
+                         <button class="filter-btn px-4 py-1.5 rounded-full text-sm whitespace-nowrap" data-rarity="epic">Epic</button>
+                         <button class="filter-btn px-4 py-1.5 rounded-full text-sm whitespace-nowrap" data-rarity="legendary">Legendary</button>
+                         <button class="filter-btn px-4 py-1.5 rounded-full text-sm whitespace-nowrap" data-rarity="mythic">Mythic</button>
+                     </div>
+                 </div>
+
+                <div id="inventoryCards" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5">
+                    <p id="noCardsText" class="hidden col-span-full text-center text-gray-400 text-xl mt-10">Your collection is empty. Open some packs!</p>
                 </div>
             </div>
         </main>
+
+    </div> <div id="cardRevealArea" class="hidden">
+        <div id="revealedCardsContainer">
+            </div>
+         <button id="closeRevealAreaBtn" title="Close">
+             &times; </button>
+          <button id="backToMainBtn" class="mt-4 mb-4 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 px-8 py-3 rounded-lg text-xl font-bold hidden transition duration-200 transform hover:scale-105 active:scale-100 relative z-50">
+             Done
+         </button>
     </div>
 
     <script>
-        // Meme database
-        const memeDatabase = [
-            { id: 1, name: "Doge", image: "https://i.imgflip.com/4/1bij.jpg", rarity: "common", humor: 5, popularity: 8, dankness: 7, year: 2013 },
-            { id: 2, name: "Pepe", image: "https://i.kym-cdn.com/entries/icons/original/000/017/618/pepefroggie.jpg", rarity: "uncommon", humor: 7, popularity: 9, dankness: 8, year: 2016 },
-            { id: 3, name: "Wojak", image: "https://i.kym-cdn.com/entries/icons/original/000/026/152/wojak.jpg", rarity: "common", humor: 6, popularity: 7, dankness: 6, year: 2010 },
-            { id: 4, name: "Trollface", image: "https://i.kym-cdn.com/entries/icons/original/000/000/091/TrollFace.jpg", rarity: "common", humor: 8, popularity: 9, dankness: 5, year: 2008 },
-            { id: 5, name: "Distracted Boyfriend", image: "https://i.imgflip.com/1/9v0.jpg", rarity: "uncommon", humor: 8, popularity: 8, dankness: 6, year: 2017 },
-            { id: 6, name: "Y U No", image: "https://i.imgflip.com/1/1h7.jpg", rarity: "common", humor: 6, popularity: 7, dankness: 4, year: 2011 },
-            { id: 7, name: "Drake Hotline Bling", image: "https://i.imgflip.com/1/39t.jpg", rarity: "rare", humor: 7, popularity: 8, dankness: 7, year: 2015 },
-            { id: 8, name: "Two Buttons", image: "https://i.imgflip.com/1/g8my.jpg", rarity: "uncommon", humor: 7, popularity: 7, dankness: 6, year: 2017 },
-            { id: 9, name: "Change My Mind", image: "https://i.imgflip.com/1/ihzfe.jpg", rarity: "rare", humor: 8, popularity: 8, dankness: 7, year: 2018 },
-            { id: 10, name: "Expanding Brain", image: "https://i.imgflip.com/1/1b42.jpg", rarity: "rare", humor: 9, popularity: 8, dankness: 8, year: 2017 },
-            { id: 11, name: "Surprised Pikachu", image: "https://i.imgflip.com/2/2kbn1d.jpg", rarity: "epic", humor: 9, popularity: 9, dankness: 8, year: 2018 },
-            { id: 12, name: "Gru's Plan", image: "https://i.imgflip.com/1/1g8my.jpg", rarity: "epic", humor: 9, popularity: 9, dankness: 9, year: 2018 },
-            { id: 13, name: "Woman Yelling at Cat", image: "https://i.imgflip.com/1/1goj.jpg", rarity: "legendary", humor: 10, popularity: 10, dankness: 9, year: 2019 },
-            { id: 14, name: "Big Chungus", image: "https://i.kym-cdn.com/entries/icons/original/000/028/021/fir.jpg", rarity: "legendary", humor: 10, popularity: 9, dankness: 10, year: 2018 },
-            { id: 15, name: "Gigachad", image: "https://i.kym-cdn.com/photos/images/newsfeed/002/432/538/3fa.jpg", rarity: "mythic", humor: 10, popularity: 10, dankness: 10, year: 2021 },
-            { id: 16, name: "Smudge the Cat", image: "https://i.kym-cdn.com/photos/images/newsfeed/002/410/765/6e1.jpg", rarity: "epic", humor: 9, popularity: 9, dankness: 8, year: 2020 },
-            { id: 17, name: "Hide the Pain Harold", image: "https://i.kym-cdn.com/entries/icons/original/000/019/559/hidethepainharold.jpg", rarity: "rare", humor: 8, popularity: 8, dankness: 7, year: 2017 },
-            { id: 18, name: "Arthur Fist", image: "https://i.imgflip.com/1/1bgz.jpg", rarity: "uncommon", humor: 7, popularity: 8, dankness: 6, year: 2017 },
-            { id: 19, name: "Bongo Cat", image: "https://i.kym-cdn.com/photos/images/newsfeed/001/584/469/cc3.jpg", rarity: "legendary", humor: 9, popularity: 9, dankness: 9, year: 2018 },
-            { id: 20, name: "Stonks", image: "https://i.kym-cdn.com/photos/images/newsfeed/001/558/694/3a3.jpg", rarity: "epic", humor: 9, popularity: 9, dankness: 9, year: 2019 }
+        // --- Configuration ---
+        const TICK_INTERVAL = 5000; // Check for coin generation every 5 seconds (5000ms)
+        const FREE_PACK_COOLDOWN = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+        const SHINY_CHANCE = 0.05; // 5% chance for a card to be shiny
+
+        // --- Memecoin Database ---
+        // NOTE: Images are placeholders/examples. Find suitable, freely usable logos/images.
+        // coinsPerMinute values are examples - balance as needed.
+        const memecoinDatabase = [
+            // Common
+            { id: 101, name: "DOGE", image: "https://cdn.icon-icons.com/icons2/3915/PNG/512/dogecoin_logo_icon_248411.png", rarity: "common", coinsPerMinute: 0.1 },
+            { id: 102, name: "SHIB", image: "https://cdn.iconscout.com/icon/free/png-256/free-shiba-inu-3215046-2673707.png", rarity: "common", coinsPerMinute: 0.1 },
+            { id: 103, name: "BabyDoge", image: "https://babydogeswap.com/images/logo.png", rarity: "common", coinsPerMinute: 0.12 },
+
+            // Uncommon
+            { id: 201, name: "PEPE", image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT84q3hQAO6WfytL4uq04QNpClGL5OkqaLQ4g&s", rarity: "uncommon", coinsPerMinute: 0.3 },
+            { id: 202, name: "FLOKI", image: "https://cdn.worldvectorlogo.com/logos/floki-inu.svg", rarity: "uncommon", coinsPerMinute: 0.25 },
+            { id: 203, name: "BONK", image: "https://assets.coingecko.com/coins/images/28600/large/bonk.jpg?1696527548", rarity: "uncommon", coinsPerMinute: 0.28 },
+             { id: 204, name: "Turbo", image: "https://assets.coingecko.com/coins/images/29874/large/photo_2023-05-04_19.30.18.jpeg?1696528872", rarity: "uncommon", coinsPerMinute: 0.22 },
+
+
+            // Rare
+            { id: 301, name: "WIF", image: "https://assets.coingecko.com/coins/images/33566/large/dogwifhat.jpg?1702499428", rarity: "rare", coinsPerMinute: 0.8 },
+            { id: 302, name: "MEME", image: "https://assets.coingecko.com/coins/images/32310/large/memecoin-logo-secondary-digital.png?1698052926", rarity: "rare", coinsPerMinute: 0.7 },
+            { id: 303, name: "MOG", image: "https://assets.coingecko.com/coins/images/30991/large/mog_logo.jpeg?1696529895", rarity: "rare", coinsPerMinute: 0.75 },
+
+            // Epic
+            { id: 401, name: "HPOS10I", image: "https://assets.coingecko.com/coins/images/30218/large/FvV3WWRWAAU5Tsf.jpeg?1696529154", rarity: "epic", coinsPerMinute: 2.0 }, // Shortened Name
+             { id: 402, name: "TROLL", image: "https://assets.coingecko.com/coins/images/33800/large/XFw_e62W_400x400.jpeg?1704763220", rarity: "epic", coinsPerMinute: 2.2 },
+
+
+            // Legendary
+            { id: 501, name: "PepeFork", image: "https://assets.coingecko.com/coins/images/34457/large/pork_logo.png?1706669542", rarity: "legendary", coinsPerMinute: 5.0 },
+            { id: 502, name: "Snek", image: "https://assets.coingecko.com/coins/images/29622/large/snek._logo.png?1696528632", rarity: "legendary", coinsPerMinute: 5.5 },
+
+             // Mythic
+             { id: 601, name: "GigaChad", image: "https://i.kym-cdn.com/photos/images/newsfeed/002/432/538/3fa.jpg", rarity: "mythic", coinsPerMinute: 15.0 }, // Example Mythic
         ];
 
-        // Rarity weights
-        const rarityWeights = {
-            common: 50,
-            uncommon: 30,
-            rare: 12,
-            epic: 5,
-            legendary: 2,
-            mythic: 1
+        // --- Rarity Probabilities ---
+        const rarityProbabilities = {
+            common: 60,
+            uncommon: 25,
+            rare: 10,
+            epic: 3.5,
+            legendary: 1,
+            mythic: 0.5
         };
+        const rarityOrder = ["mythic", "legendary", "epic", "rare", "uncommon", "common"]; // For sorting
 
-        // Pack contents
-        const packContents = {
-            basic: [
-                { rarity: "common", count: 5 }
-            ],
-            premium: [
-                { rarity: "rare", count: 3 },
-                { rarity: "common", count: 2 }
-            ],
-            legendary: [
-                { rarity: "legendary", count: 1 },
-                { rarity: "rare", count: 2 }
-            ]
-        };
-
-        // Game state
+        // --- Game State ---
         let gameState = {
             coins: 100,
-            inventory: [],
-            lastPackTime: null,
-            packTimer: null
+            inventory: {}, // Format: { cardId: { count: N, details: {...} } }
+            lastFreePackTime: null,
+            lastUpdate: Date.now(),
+            packTimerInterval: null,
+            gameLoopInterval: null
         };
 
-        // DOM elements
+        // --- DOM Elements ---
         const mainScreen = document.getElementById('mainScreen');
         const packOpeningScreen = document.getElementById('packOpeningScreen');
         const inventoryScreen = document.getElementById('inventoryScreen');
         const inventoryBtn = document.getElementById('inventoryBtn');
         const backFromInventoryBtn = document.getElementById('backFromInventoryBtn');
         const freePackBtn = document.getElementById('freePackBtn');
-        const packImage = document.getElementById('packImage');
-        const cardResults = document.getElementById('cardResults');
-        const backToMainBtn = document.getElementById('backToMainBtn');
+        // Removed packImage, replaced by dynamic injection
+        // Removed cardResults, replaced by overlay container
+        const backToMainBtn = document.getElementById('backToMainBtn'); // Now in overlay
         const coinCount = document.getElementById('coinCount');
         const packTimer = document.getElementById('packTimer');
         const timerText = document.getElementById('timerText');
         const inventoryCards = document.getElementById('inventoryCards');
+        const noCardsText = document.getElementById('noCardsText');
         const packCards = document.querySelectorAll('.pack-card');
         const filterBtns = document.querySelectorAll('.filter-btn');
+        const coinsPerMinuteDisplay = document.getElementById('coinsPerMinute');
+        // New elements
+        const packVisualInjectArea = document.getElementById('packVisualInjectArea');
+        const cardRevealArea = document.getElementById('cardRevealArea');
+        const revealedCardsContainer = document.getElementById('revealedCardsContainer');
+        const closeRevealAreaBtn = document.getElementById('closeRevealAreaBtn');
+        const packOpeningTitle = document.getElementById('packOpeningTitle');
 
-        // Initialize game
+
+        // --- Initialization ---
         function initGame() {
-            // Load saved game
-            const savedGame = localStorage.getItem('memeCardGame');
-            if (savedGame) {
-                gameState = JSON.parse(savedGame);
-                if (gameState.lastPackTime) {
-                    gameState.lastPackTime = new Date(gameState.lastPackTime);
-                }
-            }
-            
-            // Update UI
-            coinCount.textContent = gameState.coins;
+            loadGame();
+            updateCoinDisplay();
             updateInventoryDisplay();
-            startPackTimer();
-            
-            // Check if free pack is available
+            updateCoinsPerMinuteDisplay();
+            startFreePackTimer();
+            startGameLoop();
             checkFreePackAvailability();
+            addEventListeners(); // Centralize event listener setup
         }
 
-        // Save game state
+        // --- Event Listeners Setup ---
+         function addEventListeners() {
+             packCards.forEach(pack => {
+                 pack.addEventListener('click', () => {
+                     const packType = pack.dataset.packType;
+                     const cost = parseInt(pack.dataset.cost, 10);
+                     openPack(packType, cost);
+                 });
+             });
+
+             freePackBtn.addEventListener('click', () => {
+                 openPack('free', 0);
+             });
+
+             backToMainBtn.addEventListener('click', closeRevealArea); // Now closes overlay
+
+             inventoryBtn.addEventListener('click', () => {
+                 mainScreen.classList.add('hidden');
+                 packOpeningScreen.classList.add('hidden');
+                 cardRevealArea.classList.remove('visible'); // Hide overlay if open
+                 inventoryScreen.classList.remove('hidden');
+                 updateInventoryDisplay();
+             });
+
+             backFromInventoryBtn.addEventListener('click', () => {
+                 inventoryScreen.classList.add('hidden');
+                 mainScreen.classList.remove('hidden');
+             });
+
+             filterBtns.forEach(btn => {
+                 btn.addEventListener('click', () => {
+                     filterBtns.forEach(b => {
+                         b.classList.remove('active', 'bg-blue-600', 'text-white', 'shadow-lg');
+                         b.classList.add('bg-gray-700', 'text-gray-300');
+                     });
+                     btn.classList.add('active', 'bg-blue-600', 'text-white', 'shadow-lg');
+                      btn.classList.remove('bg-gray-700', 'text-gray-300');
+                     updateInventoryDisplay(btn.dataset.rarity);
+                 });
+             });
+
+            closeRevealAreaBtn.addEventListener('click', closeRevealArea);
+
+             window.addEventListener('beforeunload', saveGame);
+         }
+
+
+        // --- Game Loop (Passive Income) ---
+        function startGameLoop() {
+            if (gameState.gameLoopInterval) clearInterval(gameState.gameLoopInterval);
+            gameState.gameLoopInterval = setInterval(updatePassiveIncome, TICK_INTERVAL);
+        }
+
+        function updatePassiveIncome() {
+            const now = Date.now();
+            const timeElapsedSeconds = (now - gameState.lastUpdate) / 1000;
+            if (timeElapsedSeconds <= 0) return;
+
+            const totalCoinsPerMinute = calculateTotalCoinsPerMinute();
+            const coinsEarned = (totalCoinsPerMinute / 60) * timeElapsedSeconds;
+
+            if (coinsEarned > 0) {
+                gameState.coins += coinsEarned;
+                updateCoinDisplay();
+                triggerCoinUpdateAnimation(); // Pulse on passive income gain
+            }
+            gameState.lastUpdate = now;
+        }
+
+        function calculateTotalCoinsPerMinute() {
+             let totalRate = 0;
+             for (const cardId in gameState.inventory) {
+                 const item = gameState.inventory[cardId];
+                 if (item?.details?.coinsPerMinute) { // Optional chaining
+                     totalRate += item.details.coinsPerMinute * item.count;
+                 }
+             }
+             return totalRate;
+         }
+
+         function updateCoinsPerMinuteDisplay() {
+             coinsPerMinuteDisplay.textContent = calculateTotalCoinsPerMinute().toFixed(2);
+         }
+
+        // --- Save/Load Game ---
         function saveGame() {
-            localStorage.setItem('memeCardGame', JSON.stringify(gameState));
+             gameState.lastUpdate = Date.now();
+            try {
+                 localStorage.setItem('memeCoinCollectorGame', JSON.stringify(gameState));
+                 // console.log("Game Saved"); // Less console spam
+             } catch (e) { console.error("Error saving game state:", e); }
         }
 
-        // Start pack timer
-        function startPackTimer() {
-            if (gameState.packTimer) {
-                clearInterval(gameState.packTimer);
-            }
-            
-            gameState.packTimer = setInterval(updatePackTimer, 1000);
-            updatePackTimer();
+        function loadGame() {
+            const savedGame = localStorage.getItem('memeCoinCollectorGame');
+            if (!savedGame) return; // Exit if no save data
+
+            try {
+                 const loadedState = JSON.parse(savedGame);
+                 // Basic validation / migration
+                 if (typeof loadedState.coins !== 'number' || isNaN(loadedState.coins)) loadedState.coins = 100;
+                 if (typeof loadedState.inventory !== 'object' || loadedState.inventory === null) loadedState.inventory = {};
+                 loadedState.lastUpdate = loadedState.lastUpdate ? parseInt(loadedState.lastUpdate, 10) : Date.now();
+                 loadedState.lastFreePackTime = loadedState.lastFreePackTime ? new Date(loadedState.lastFreePackTime) : null;
+
+                 gameState = { ...gameState, ...loadedState };
+
+                 // Calculate offline progress
+                 const now = Date.now();
+                 const offlineTimeMs = now - gameState.lastUpdate;
+                 if (offlineTimeMs > TICK_INTERVAL) { // Only calculate if offline for more than one tick
+                     const totalCoinsPerMinute = calculateTotalCoinsPerMinute();
+                     const offlineSeconds = offlineTimeMs / 1000;
+                     const offlineEarnings = (totalCoinsPerMinute / 60) * offlineSeconds;
+                     if (offlineEarnings > 0.01) { // Only add if noticeable amount
+                        gameState.coins += offlineEarnings;
+                         console.log(`Awarded ${offlineEarnings.toFixed(2)} coins for offline time.`);
+                     }
+                 }
+                 gameState.lastUpdate = now; // Reset last update time
+                 console.log("Game Loaded");
+             } catch (e) {
+                 console.error("Error loading game state:", e);
+                 localStorage.removeItem('memeCoinCollectorGame'); // Clear corrupted data
+             }
         }
 
-        // Update pack timer
-        function updatePackTimer() {
-            if (!gameState.lastPackTime) {
+        // --- Free Pack Timer ---
+        function startFreePackTimer() {
+            if (gameState.packTimerInterval) clearInterval(gameState.packTimerInterval);
+            gameState.packTimerInterval = setInterval(updateFreePackTimerDisplay, 1000);
+            updateFreePackTimerDisplay();
+        }
+
+        function updateFreePackTimerDisplay() {
+            const ready = !gameState.lastFreePackTime || (new Date() - gameState.lastFreePackTime >= FREE_PACK_COOLDOWN);
+
+            if (ready) {
                 packTimer.style.width = '100%';
                 timerText.textContent = 'Ready!';
-                return;
-            }
-            
-            const now = new Date();
-            const nextPackTime = new Date(gameState.lastPackTime.getTime() + 24 * 60 * 60 * 1000); // 24 hours
-            const timeLeft = nextPackTime - now;
-            
-            if (timeLeft <= 0) {
-                packTimer.style.width = '100%';
-                timerText.textContent = 'Ready!';
-                return;
-            }
-            
-            const totalTime = 24 * 60 * 60 * 1000;
-            const elapsed = totalTime - timeLeft;
-            const percentage = (elapsed / totalTime) * 100;
-            
-            packTimer.style.width = `${percentage}%`;
-            
-            // Format time left
-            const hours = Math.floor(timeLeft / (1000 * 60 * 60));
-            const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
-            
-            timerText.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-        }
-
-        // Check if free pack is available
-        function checkFreePackAvailability() {
-            if (!gameState.lastPackTime) {
                 freePackBtn.disabled = false;
                 return;
             }
-            
+
+            freePackBtn.disabled = true;
             const now = new Date();
-            const nextPackTime = new Date(gameState.lastPackTime.getTime() + 24 * 60 * 60 * 1000); // 24 hours
-            freePackBtn.disabled = now < nextPackTime;
+            const nextPackTime = new Date(gameState.lastFreePackTime.getTime() + FREE_PACK_COOLDOWN);
+            const timeLeft = nextPackTime - now;
+            const elapsed = FREE_PACK_COOLDOWN - timeLeft;
+            const percentage = Math.min(100, (elapsed / FREE_PACK_COOLDOWN) * 100);
+            packTimer.style.width = `${percentage}%`;
+
+            const hours = Math.floor(timeLeft / (1000 * 60 * 60));
+            const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+            timerText.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
         }
 
-        // Get random meme by rarity
-        function getRandomMemeByRarity(rarity) {
-            // Filter memes by rarity
-            let eligibleMemes = memeDatabase.filter(meme => meme.rarity === rarity);
-            
-            // If no memes of exact rarity, get closest (for packs that might request rarer cards than exist)
-            if (eligibleMemes.length === 0) {
-                const rarityOrder = ["common", "uncommon", "rare", "epic", "legendary", "mythic"];
-                const currentIndex = rarityOrder.indexOf(rarity);
-                
-                for (let i = currentIndex; i >= 0; i--) {
-                    eligibleMemes = memeDatabase.filter(meme => meme.rarity === rarityOrder[i]);
-                    if (eligibleMemes.length > 0) break;
-                }
-            }
-            
-            // Select random meme
-            const randomIndex = Math.floor(Math.random() * eligibleMemes.length);
-            return { ...eligibleMemes[randomIndex] };
+        function checkFreePackAvailability() {
+             updateFreePackTimerDisplay();
         }
 
-        // Open pack
-        function openPack(packType) {
-            // Check if player can afford the pack
-            let packCost = 0;
-            switch (packType) {
-                case 'basic': packCost = 50; break;
-                case 'premium': packCost = 150; break;
-                case 'legendary': packCost = 300; break;
-                case 'free': packCost = 0; break;
-            }
-            
-            if (packType !== 'free' && gameState.coins < packCost) {
-                alert("Not enough coins!");
-                return;
-            }
-            
-            // Deduct coins if not free
-            if (packType !== 'free') {
-                gameState.coins -= packCost;
-                coinCount.textContent = gameState.coins;
-            }
-            
-            // Set last pack time if free
-            if (packType === 'free') {
-                gameState.lastPackTime = new Date();
-                freePackBtn.disabled = true;
-                startPackTimer();
-            }
-            
-            // Show pack opening screen
-            mainScreen.classList.add('hidden');
-            packOpeningScreen.classList.remove('hidden');
-            cardResults.classList.add('hidden');
-            backToMainBtn.classList.add('hidden');
-            
-            // Set pack image based on type
-            let packColor = 'red';
-            let packIcon = 'fa-gift';
-            
-            switch (packType) {
-                case 'premium':
-                    packColor = 'blue';
-                    packIcon = 'fa-star';
-                    break;
-                case 'legendary':
-                    packColor = 'purple';
-                    packIcon = 'fa-crown';
-                    break;
-            }
-            
-            packImage.className = `bg-${packColor}-600 rounded-xl p-8 w-64 h-96 flex flex-col items-center justify-center border-4 border-${packColor}-700 shadow-lg cursor-pointer pack-open`;
-            packImage.innerHTML = `<i class="fas ${packIcon} text-8xl mb-4"></i><h3 class="text-2xl font-bold">Click to Open!</h3>`;
-            
-            // Save game
-            saveGame();
-        }
+        // --- Card Generation Logic ---
+        function getRandomCardByWeightedRarity() {
+             let totalWeight = 0;
+             for (const rarity in rarityProbabilities) {
+                 totalWeight += rarityProbabilities[rarity];
+             }
+             let random = Math.random() * totalWeight;
+             let chosenRarity = 'common';
+            for (const rarity in rarityProbabilities) {
+                 if (random < rarityProbabilities[rarity]) {
+                     chosenRarity = rarity;
+                     break;
+                 }
+                 random -= rarityProbabilities[rarity];
+             }
+             const eligibleMemes = memecoinDatabase.filter(meme => meme.rarity === chosenRarity);
+             if (eligibleMemes.length === 0) {
+                 console.warn(`No cards found for rarity: ${chosenRarity}. Falling back to common.`);
+                 const commonMemes = memecoinDatabase.filter(meme => meme.rarity === 'common');
+                 return commonMemes.length > 0 ? { ...commonMemes[Math.floor(Math.random() * commonMemes.length)] } : null; // Handle no common cards edge case
+             }
+             return { ...eligibleMemes[Math.floor(Math.random() * eligibleMemes.length)] };
+         }
 
-        // Generate cards for pack
-        function generatePackCards(packType) {
-            cardResults.innerHTML = '';
-            
-            // Get pack contents
-            const contents = packContents[packType] || packContents.basic;
-            const cards = [];
-            
-            // Generate each card
-            contents.forEach(content => {
-                for (let i = 0; i < content.count; i++) {
-                    const card = getRandomMemeByRarity(content.rarity);
-                    
-                    // Determine if card is shiny (5% chance)
-                    const isShiny = Math.random() < 0.05;
-                    
-                    // Determine if card is full art (only for rare+, 10% chance)
-                    const isFullArt = (['rare', 'epic', 'legendary', 'mythic'].includes(card.rarity)) && Math.random() < 0.1;
-                    
-                    cards.push({
-                        ...card,
-                        isShiny,
-                        isFullArt
-                    });
-                }
-            });
-            
-            // Shuffle cards
-            shuffleArray(cards);
-            
-            // Add to inventory
-            cards.forEach(card => {
-                gameState.inventory.push(card);
-            });
-            
-            // Display cards
-            cards.forEach((card, index) => {
-                setTimeout(() => {
-                    displayCard(card, index);
-                }, index * 300);
-            });
-            
-            // Show back button after all cards are displayed
-            setTimeout(() => {
-                backToMainBtn.classList.remove('hidden');
-            }, cards.length * 300 + 500);
-            
-            // Save game
-            saveGame();
-            updateInventoryDisplay();
-        }
+        // --- Pack Opening Flow ---
+        function openPack(packType, cost) {
+             // Coin Check / Free Pack Check
+             if (packType !== 'free') {
+                 if (gameState.coins < cost) {
+                    const coinDisplay = document.getElementById('coinCount').parentElement;
+                    coinDisplay.classList.add('animate-shake');
+                    setTimeout(() => coinDisplay.classList.remove('animate-shake'), 500);
+                    alert(`Not enough coins! Need ${cost}.`);
+                     return;
+                 }
+                 gameState.coins -= cost;
+                 triggerCoinUpdateAnimation();
+                 updateCoinDisplay();
+             } else {
+                const now = new Date();
+                if (!gameState.lastFreePackTime || (now - gameState.lastFreePackTime >= FREE_PACK_COOLDOWN)) {
+                    gameState.lastFreePackTime = now;
+                     checkFreePackAvailability();
+                     startFreePackTimer();
+                 } else {
+                    alert("Free pack not ready yet!");
+                     return;
+                 }
+             }
 
-        // Display a card
-        function displayCard(card, index) {
-            const cardElement = createCardElement(card);
-            cardElement.classList.add('card-reveal');
-            cardResults.appendChild(cardElement);
-            
-            if (index === 0) {
-                cardResults.classList.remove('hidden');
-            }
-        }
+             // UI Setup
+             mainScreen.classList.add('hidden');
+             inventoryScreen.classList.add('hidden');
+             packOpeningScreen.classList.remove('hidden');
+             packOpeningTitle.classList.remove('hidden');
+             packVisualInjectArea.innerHTML = '';
+             backToMainBtn.classList.add('hidden');
+             cardRevealArea.classList.remove('visible');
+             revealedCardsContainer.innerHTML = '';
 
-        // Create card element
-        function createCardElement(card) {
+             // Display Pack & Attach Listener
+             const packVisualElement = createPackVisualElement(packType);
+             packVisualInjectArea.appendChild(packVisualElement);
+             packVisualElement.addEventListener('click', () => {
+                  triggerPackOpeningAnimation(packVisualElement, packType);
+              }, { once: true });
+
+             saveGame();
+         }
+
+         function createPackVisualElement(packType) {
+             let packColor = 'red', packIcon = 'fa-box', packName = 'Basic Pack';
+             switch (packType) {
+                 case 'premium': packColor = 'blue'; packIcon = 'fa-star'; packName = 'Premium Pack'; break;
+                 case 'legendary': packColor = 'purple'; packIcon = 'fa-crown'; packName = 'Legendary Pack'; break;
+                 case 'free': packColor = 'green'; packIcon = 'fa-gift'; packName = 'Free Pack'; break;
+             }
+             const packElement = document.createElement('div');
+             packElement.className = `pack-visual bg-gradient-to-br from-${packColor}-500 to-${packColor}-700 rounded-xl p-8 w-64 h-96 flex flex-col items-center justify-center border-4 border-${packColor}-800 shadow-xl cursor-pointer`;
+             packElement.innerHTML = `
+                 <i class="fas ${packIcon} text-8xl mb-6 text-${packColor}-100"></i>
+                 <h3 class="text-2xl font-bold text-white mb-2">${packName}</h3>
+                 <p class="text-lg text-${packColor}-200">Click to Open!</p>
+             `;
+             return packElement;
+         }
+
+         function triggerPackOpeningAnimation(packVisualElement, packType) {
+             packVisualElement.style.pointerEvents = 'none'; // Prevent double clicks
+             packVisualElement.classList.add('pack-opening-wobble');
+             packVisualElement.addEventListener('animationend', (event) => {
+                 if (event.animationName === 'packWobble') {
+                     packVisualElement.classList.remove('pack-opening-wobble');
+                     packVisualElement.classList.add('pack-opening-flyaway');
+                     packOpeningTitle.classList.add('hidden');
+                     setTimeout(() => generateAndRevealCards(packType), 100);
+                     setTimeout(() => { if(packVisualElement) packVisualElement.style.display = 'none'; }, 500); // Hide after fly
+                 }
+             }, { once: true });
+         }
+
+        // --- Card Generation and REVEAL Logic ---
+         function generateAndRevealCards(packType) {
+             const cardsInPack = 5;
+             const drawnCards = [];
+             for (let i = 0; i < cardsInPack; i++) {
+                 const card = getRandomCardByWeightedRarity();
+                 if(!card) continue; // Skip if no card could be generated
+                 const isShiny = Math.random() < SHINY_CHANCE;
+                 drawnCards.push({ ...card, isShiny });
+                 // Add to inventory
+                 const cardId = card.id;
+                 if (gameState.inventory[cardId]) {
+                     gameState.inventory[cardId].count++;
+                 } else {
+                     gameState.inventory[cardId] = { count: 1, details: { ...card, isShiny } };
+                 }
+             }
+
+             // Prepare Reveal Area
+             revealedCardsContainer.innerHTML = '';
+             cardRevealArea.classList.add('visible');
+
+             // Create Card Backs for Reveal
+             drawnCards.forEach((cardDetails, index) => {
+                 const flipContainer = document.createElement('div');
+                 flipContainer.className = 'card-flip-container';
+                 flipContainer.style.opacity = '0';
+                 flipContainer.style.transform = 'translateY(50px)';
+
+                 const cardBack = document.createElement('div');
+                 cardBack.className = 'card-face card-back';
+                 cardBack.innerHTML = '<i class="fas fa-question"></i>';
+
+                 const cardFront = document.createElement('div');
+                 cardFront.className = 'card-face card-front';
+                 const cardElement = createCardElement(cardDetails, 'reveal'); // Generate card visual
+                 cardFront.appendChild(cardElement);
+
+                 flipContainer.appendChild(cardBack);
+                 flipContainer.appendChild(cardFront);
+                 revealedCardsContainer.appendChild(flipContainer);
+
+                 // Staggered Reveal Animation
+                 setTimeout(() => {
+                     flipContainer.style.transition = 'opacity 0.4s ease-out, transform 0.4s ease-out';
+                     flipContainer.style.opacity = '1';
+                     flipContainer.style.transform = 'translateY(0px)';
+                     setTimeout(() => {
+                         flipContainer.classList.add('is-flipped');
+                         setTimeout(() => addRarityGlowEffect(cardFront, cardDetails.rarity), 800);
+                     }, 500);
+                 }, index * 400); // Stagger appearance
+             });
+
+             // Show "Done" button
+             setTimeout(() => {
+                 backToMainBtn.classList.remove('hidden');
+             }, drawnCards.length * 400 + 1500);
+
+             updateCoinsPerMinuteDisplay();
+             updateInventoryDisplay();
+             saveGame();
+         }
+
+         function addRarityGlowEffect(cardFrontElement, rarity) {
+              let glowClass = '';
+              switch (rarity) {
+                  case 'rare': glowClass = 'rarity-glow-reveal-rare'; break;
+                  case 'epic': glowClass = 'rarity-glow-reveal-epic'; break;
+                  case 'legendary': glowClass = 'rarity-glow-reveal-legendary'; break;
+                  case 'mythic': glowClass = 'rarity-glow-reveal-mythic'; break;
+              }
+              if (glowClass) {
+                   const cardVisual = cardFrontElement.querySelector('.card');
+                   if(cardVisual) {
+                       cardVisual.classList.add(glowClass);
+                       // Remove glow after animation to prevent constant pulse
+                       setTimeout(() => cardVisual.classList.remove(glowClass), 1500);
+                   }
+              }
+          }
+
+        // --- Card Element Creation ---
+         function createCardElement(cardData, context = 'inventory') {
             const cardElement = document.createElement('div');
-            cardElement.className = `card bg-gray-800 rounded-lg overflow-hidden shadow-lg relative card-${card.rarity}`;
-            
-            if (card.isShiny) {
-                cardElement.classList.add('shiny');
-            }
-            
-            if (card.isFullArt) {
-                cardElement.classList.add('full-art');
-                cardElement.style.backgroundImage = `url(${card.image})`;
-            }
-            
-            let cardHTML = `
-                <div class="p-4 h-full flex flex-col">
-                    <div class="flex justify-between items-start mb-2">
-                        <h3 class="text-xl font-bold ${card.isShiny ? 'text-yellow-300' : ''}">${card.name}</h3>
-                        <span class="text-xs px-2 py-1 rounded-full ${
-                            card.rarity === 'common' ? 'bg-gray-500' :
-                            card.rarity === 'uncommon' ? 'bg-blue-500' :
-                            card.rarity === 'rare' ? 'bg-yellow-500' :
-                            card.rarity === 'epic' ? 'bg-purple-500' :
-                            card.rarity === 'legendary' ? 'bg-orange-500' : 'bg-red-500'
-                        }">${card.rarity.charAt(0).toUpperCase() + card.rarity.slice(1)}</span>
-                    </div>
-            `;
-            
-            if (!card.isFullArt) {
-                cardHTML += `
-                    <div class="flex-grow flex items-center justify-center mb-4">
-                        <img src="${card.image}" alt="${card.name}" class="max-h-40 max-w-full">
-                    </div>
-                `;
-            } else {
-                cardHTML += `<div class="flex-grow"></div>`;
-            }
-            
-            cardHTML += `
-                <div class="card-stats bg-gray-900 bg-opacity-90 p-2 rounded-lg">
-                    <div class="flex justify-between text-xs mb-1">
-                        <span>Humor:</span>
-                        <span>${card.humor}/10</span>
-                    </div>
-                    <div class="flex justify-between text-xs mb-1">
-                        <span>Popularity:</span>
-                        <span>${card.popularity}/10</span>
-                    </div>
-                    <div class="flex justify-between text-xs mb-1">
-                        <span>Dankness:</span>
-                        <span>${card.dankness}/10</span>
-                    </div>
-                    <div class="flex justify-between text-xs">
-                        <span>Year:</span>
-                        <span>${card.year}</span>
-                    </div>
-                </div>
-            `;
-            
-            if (card.isShiny) {
-                cardHTML += `
-                    <div class="absolute top-2 right-2 text-yellow-400">
-                        <i class="fas fa-star"></i>
-                    </div>
-                `;
-            }
-            
-            if (card.isFullArt) {
-                cardHTML += `
-                    <div class="absolute top-2 left-2 text-purple-400">
-                        <i class="fas fa-palette"></i>
-                    </div>
-                `;
-            }
-            
-            cardHTML += `</div>`;
+            const isInventory = context === 'inventory';
+            const cardDetails = isInventory ? cardData.details : cardData;
+            const count = isInventory ? cardData.count : 1;
+
+            cardElement.className = `card h-full flex flex-col ${
+                isInventory ? `inventory-card rarity-glow-${cardDetails.rarity} border-2 border-${getRarityColor(cardDetails.rarity)}-600` : 'reveal-visual'
+             }`;
+
+             if (cardDetails.isShiny && isInventory) { // Apply shiny in inventory
+                 cardElement.classList.add('shiny');
+             }
+
+             const imgMaxHeight = isInventory ? 'max-h-24' : 'max-h-28'; // Image size based on context
+
+             let cardHTML = `
+                 <div class="${isInventory ? 'p-3' : 'p-2'} h-full flex flex-col text-center bg-inherit">
+                     ${isInventory && count > 1 ? `<span class="count-badge">x${count}</span>` : ''}
+                     <h3 class="text-sm md:text-base font-semibold mb-1 truncate ${cardDetails.isShiny ? 'text-yellow-300 font-bold' : 'text-gray-100'}">${cardDetails.name}</h3>
+                     <span class="text-xs px-2 py-0.5 rounded-full mb-2 self-center ${getRarityClass(cardDetails.rarity)}">
+                         ${cardDetails.rarity.charAt(0).toUpperCase() + cardDetails.rarity.slice(1)}
+                     </span>
+                     <div class="card-image-container flex-grow flex items-center justify-center mb-2 ${isInventory ? '' : 'my-1'}">
+                         <img src="${cardDetails.image}" alt="${cardDetails.name}" class="${imgMaxHeight} object-contain" onerror="this.onerror=null; this.src='https://placehold.co/80x80/333/666?text=No+Img'; this.alt='Image missing';">
+                     </div>
+                     <div class="text-xs text-gray-400 mt-auto">
+                          <span>Rate: ${cardDetails.coinsPerMinute.toFixed(2)}/min</span>
+                     </div>
+                     ${cardDetails.isShiny ? `
+                         <div class="absolute -top-1 -right-1 text-yellow-400 text-lg ${isInventory ? 'animate-pulse' : ''}">
+                             <i class="fas fa-star"></i>
+                         </div>
+                     ` : ''}
+                 </div>
+             `;
             cardElement.innerHTML = cardHTML;
-            
-            return cardElement;
+             cardElement.dataset.cardId = cardDetails.id;
+             cardElement.dataset.rarity = cardDetails.rarity;
+             return cardElement;
+         }
+
+        // --- Inventory Display ---
+         function updateInventoryDisplay(filter = 'all') {
+             inventoryCards.innerHTML = '';
+             let hasCards = false;
+             const sortedInventory = Object.values(gameState.inventory).sort((a, b) => {
+                 return rarityOrder.indexOf(a.details.rarity) - rarityOrder.indexOf(b.details.rarity);
+             });
+             sortedInventory.forEach(item => {
+                 if (filter === 'all' || item.details.rarity === filter) {
+                     const cardElement = createCardElement(item, 'inventory');
+                     inventoryCards.appendChild(cardElement);
+                     hasCards = true;
+                 }
+             });
+             noCardsText.classList.toggle('hidden', hasCards);
+             noCardsText.classList.toggle('block', !hasCards);
+         }
+
+        // --- Utility Functions ---
+        function getRarityClass(rarity) { /* For rarity badge background/text */
+            switch (rarity) {
+                case 'common': return 'bg-gray-500 text-gray-900';
+                case 'uncommon': return 'bg-blue-400 text-blue-900';
+                case 'rare': return 'bg-yellow-400 text-yellow-900';
+                case 'epic': return 'bg-purple-500 text-white';
+                case 'legendary': return 'bg-orange-500 text-white';
+                case 'mythic': return 'bg-red-600 text-white font-bold';
+                default: return 'bg-gray-500 text-gray-900';
+            }
+        }
+        function getRarityColor(rarity) { /* For border colors */
+             switch (rarity) {
+                 case 'common': return 'gray';
+                 case 'uncommon': return 'blue';
+                 case 'rare': return 'yellow';
+                 case 'epic': return 'purple';
+                 case 'legendary': return 'orange';
+                 case 'mythic': return 'red';
+                 default: return 'gray';
+             }
+         }
+        function updateCoinDisplay() {
+            coinCount.textContent = Math.floor(gameState.coins).toLocaleString();
+        }
+        function triggerCoinUpdateAnimation() {
+            const coinIcon = coinCount.previousElementSibling;
+            if (coinIcon) {
+                coinIcon.classList.remove('coin-pulse-animation'); // Remove first to allow re-trigger
+                void coinIcon.offsetWidth; // Trigger reflow
+                coinIcon.classList.add('coin-pulse-animation');
+                setTimeout(() => coinIcon.classList.remove('coin-pulse-animation'), 400);
+            }
+        }
+        function closeRevealArea() {
+            cardRevealArea.classList.remove('visible');
+            packOpeningScreen.classList.add('hidden'); // Ensure underlying screen is hidden
+            mainScreen.classList.remove('hidden'); // Go back to main screen
         }
 
-        // Create inventory card element
-        function createInventoryCardElement(card) {
-            const cardElement = document.createElement('div');
-            cardElement.className = `inventory-card bg-gray-800 rounded-lg overflow-hidden shadow-lg relative card-${card.rarity}`;
-            
-            if (card.isShiny) {
-                cardElement.classList.add('shiny');
-            }
-            
-            let cardHTML = `
-                <div class="p-4 h-full flex flex-col">
-                    <div class="flex justify-between items-start mb-2">
-                        <h3 class="text-lg font-bold ${card.isShiny ? 'text-yellow-300' : ''}">${card.name}</h3>
-                        <span class="text-xs px-2 py-1 rounded-full ${
-                            card.rarity === 'common' ? 'bg-gray-500' :
-                            card.rarity === 'uncommon' ? 'bg-blue-500' :
-                            card.rarity === 'rare' ? 'bg-yellow-500' :
-                            card.rarity === 'epic' ? 'bg-purple-500' :
-                            card.rarity === 'legendary' ? 'bg-orange-500' : 'bg-red-500'
-                        }">${card.rarity.charAt(0).toUpperCase() + card.rarity.slice(1)}</span>
-                    </div>
-                    <div class="flex-grow flex items-center justify-center mb-2">
-                        <img src="${card.image}" alt="${card.name}" class="max-h-32 max-w-full">
-                    </div>
-                    <div class="text-xs">
-                        <div class="flex justify-between mb-1">
-                            <span>Humor:</span>
-                            <span>${card.humor}/10</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span>Dankness:</span>
-                            <span>${card.dankness}/10</span>
-                        </div>
-                    </div>
-            `;
-            
-            if (card.isShiny) {
-                cardHTML += `
-                    <div class="absolute top-2 right-2 text-yellow-400">
-                        <i class="fas fa-star"></i>
-                    </div>
-                `;
-            }
-            
-            if (card.isFullArt) {
-                cardHTML += `
-                    <div class="absolute top-2 left-2 text-purple-400">
-                        <i class="fas fa-palette"></i>
-                    </div>
-                `;
-            }
-            
-            cardHTML += `</div>`;
-            cardElement.innerHTML = cardHTML;
-            
-            return cardElement;
-        }
-
-        // Update inventory display
-        function updateInventoryDisplay(filter = 'all') {
-            inventoryCards.innerHTML = '';
-            
-            let filteredInventory = [...gameState.inventory];
-            
-            if (filter !== 'all') {
-                filteredInventory = filteredInventory.filter(card => card.rarity === filter);
-            }
-            
-            // Sort by rarity (mythic -> common)
-            const rarityOrder = ["mythic", "legendary", "epic", "rare", "uncommon", "common"];
-            filteredInventory.sort((a, b) => {
-                return rarityOrder.indexOf(a.rarity) - rarityOrder.indexOf(b.rarity);
-            });
-            
-            // Add cards to inventory
-            filteredInventory.forEach(card => {
-                const cardElement = createInventoryCardElement(card);
-                inventoryCards.appendChild(cardElement);
-            });
-        }
-
-        // Shuffle array
-        function shuffleArray(array) {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
-            }
-            return array;
-        }
-
-        // Event listeners
-        packCards.forEach(pack => {
-            pack.addEventListener('click', () => {
-                const packType = pack.dataset.packType;
-                openPack(packType);
-            });
-        });
-
-        freePackBtn.addEventListener('click', () => {
-            openPack('free');
-        });
-
-        packImage.addEventListener('click', () => {
-            const packType = packImage.classList.contains('bg-red-600') ? 'basic' : 
-                            packImage.classList.contains('bg-blue-600') ? 'premium' : 'legendary';
-            generatePackCards(packType);
-        });
-
-        backToMainBtn.addEventListener('click', () => {
-            packOpeningScreen.classList.add('hidden');
-            mainScreen.classList.remove('hidden');
-        });
-
-        inventoryBtn.addEventListener('click', () => {
-            mainScreen.classList.add('hidden');
-            packOpeningScreen.classList.add('hidden');
-            inventoryScreen.classList.remove('hidden');
-        });
-
-        backFromInventoryBtn.addEventListener('click', () => {
-            inventoryScreen.classList.add('hidden');
-            mainScreen.classList.remove('hidden');
-        });
-
-        filterBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                filterBtns.forEach(b => b.classList.remove('active', 'bg-blue-600'));
-                btn.classList.add('active', 'bg-blue-600');
-                updateInventoryDisplay(btn.dataset.rarity);
-            });
-        });
-
-        // Initialize game
+        // --- Start the Game ---
         initGame();
+
     </script>
 </body>
 </html>
